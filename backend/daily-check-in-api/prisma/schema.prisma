@@ -1,0 +1,264 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// ============================================
+// 用户相关模型
+// ============================================
+
+model User {
+  id          String   @id @default(cuid())
+  openid      String   @unique
+  unionid     String?  @unique
+  nickname    String
+  avatar      String
+  points      Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  checkinItems  CheckInItem[]
+  checkinRecords CheckInRecord[]
+  teams         Team[]
+  teamMembers   TeamMember[]
+  posts         Post[]
+  comments      Comment[]
+  likes         Like[]
+  pointsRecords PointsRecord[]
+  userMedals    UserMedal[]
+  notifications Notification[]
+
+  @@map("users")
+}
+
+// ============================================
+// 打卡相关模型
+// ============================================
+
+model CheckInItem {
+  id           String       @id @default(cuid())
+  userId       String
+  name         String
+  type         String
+  dailyTarget  String?
+  cycle        String
+  reminderTime String?
+  reminderText String?
+  sortOrder    Int          @default(0)
+  isHidden     Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  records CheckInRecord[]
+
+  @@index([userId])
+  @@map("checkin_items")
+}
+
+model CheckInRecord {
+  id         String   @id @default(cuid())
+  userId     String
+  itemId     String
+  date       DateTime @default(now())
+  note       String?
+  status     String
+  makeupCost Int?
+  createdAt  DateTime @default(now())
+
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item CheckInItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId, date])
+  @@index([userId])
+  @@index([itemId])
+  @@map("checkin_records")
+}
+
+// ============================================
+// 社交相关模型
+// ============================================
+
+model Team {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  maxMembers  Int      @default(5)
+  target      String?
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  captain User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  members  TeamMember[]
+
+  @@index([userId])
+  @@map("teams")
+}
+
+model TeamMember {
+  id       String   @id @default(cuid())
+  teamId   String
+  userId   String
+  role     String   @default("member")
+  joinedAt DateTime @default(now())
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([userId])
+  @@map("team_members")
+}
+
+model Post {
+  id        String    @id @default(cuid())
+  userId    String
+  itemId    String?
+  content   String
+  images    String?
+  tags      String?
+  likeCount Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments Comment[]
+  likes    Like[]
+
+  @@index([userId])
+  @@map("posts")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  content   String
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([userId])
+  @@map("comments")
+}
+
+model Like {
+  id        String    @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime  @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([postId])
+  @@map("likes")
+}
+
+// ============================================
+// 激励相关模型
+// ============================================
+
+model PointsRecord {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  amount    Int
+  reason    String
+  relatedId String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("points_records")
+}
+
+model Medal {
+  id         String    @id @default(cuid())
+  name       String
+  description String
+  icon       String
+  condition  String
+  rarity     String
+
+  userMedals UserMedal[]
+
+  @@map("medals")
+}
+
+model UserMedal {
+  id        String   @id @default(cuid())
+  userId    String
+  medalId   String
+  earnedAt  DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  medal Medal @relation(fields: [medalId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, medalId])
+  @@index([userId])
+  @@map("user_medals")
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String
+  reachedAt   DateTime @default(now())
+
+  @@unique([userId, name])
+  @@map("achievements")
+}
+
+model Challenge {
+  id           String    @id @default(cuid())
+  title        String
+  description  String
+  type         String
+  rewardPoints Int
+  rewardMedal  String?
+  entryPoints  Int       @default(0)
+  startDate    DateTime
+  endDate      DateTime
+  status       String    @default("upcoming")
+  participants Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([status])
+  @@map("challenges")
+}
+
+// ============================================
+// 通知相关模型
+// ============================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  content   String
+  isRead    Boolean  @default(false)
+  relatedId String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}

@@ -1,0 +1,42 @@
+# 一、系统与编辑器临时文件
+.DS_Store                  # Mac 系统临时文件
+Thumbs.db                  # Windows 系统临时文件
+*.swp                      # Vim 临时文件
+*.swo                      # Vim 临时文件
+.idea/                     # IDEA 系列编辑器配置
+.vscode/                   # VS Code 配置（如需共享配置可删除此行）
+.history/                  # HBuilderX 历史记录文件夹
+unpackage/                 # uni-app 编译输出目录（核心忽略，体积大且自动生成）
+
+# 二、依赖与缓存文件
+node_modules/              # npm/yarn 依赖包（无需提交，通过 package.json 安装）
+package-lock.json          # npm 锁文件（可选，团队统一可保留）
+yarn.lock                  # yarn 锁文件（可选，二选一保留）
+pnpm-lock.yaml             # pnpm 锁文件（可选，二选一保留）
+.cache/                    # 构建缓存文件夹
+.eslintcache               # ESLint 缓存文件
+
+# 三、uni-app 特定文件
+app-plus/                  # App 端编译产物
+mp-weixin/                 # 微信小程序编译产物（对应项目的微信端输出）
+mp-alipay/                 # 支付宝小程序编译产物（无需多端可保留）
+mp-baidu/                  # 百度小程序编译产物（无需多端可保留）
+mp-toutiao/                # 头条小程序编译产物（无需多端可保留）
+mp-qq/                     # QQ 小程序编译产物（无需多端可保留）
+h5/                        # H5 端编译产物（无需多端可保留）
+quickapp/                  # 快应用编译产物（无需多端可保留）
+
+# 四、环境配置文件（敏感信息）
+.env.*                     # 环境变量文件（含密钥、接口地址等敏感信息）
+!.env.example              # 示例环境文件（可选保留，供团队参考格式）
+wx.config.js               # 微信小程序敏感配置（如私钥，按需添加）
+
+# 五、日志与临时文件
+*.log                      # 所有日志文件
+temp/                      # 临时文件夹
+dist/                      # 部分编译工具的输出目录（如自定义构建）
+
+# 六、其他无用文件
+*.bak                      # 备份文件
+*.tmp                      # 临时文件
+*.zip                      # 压缩包（如需提交资源包可删除此行）
